@@ -21,8 +21,13 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "c-game-engine @ vacaroxa");
 
+    // core gameplay
+    int scoreP1 = 0;
+    int scoreP2 = 0;
+
     // paddle 1
     Paddle paddle1;
+    int paddleSpeed = 0;
     paddle1.position.x = 10;
     paddle1.position.y = (float)screenHeight/2 - PADDLE_HEIGHT/2;
     paddle1.size.x = PADDLE_SIZE;
@@ -39,7 +44,8 @@ int main(void)
 
     // ball
     Paddle ball;
-    int speed = 2;
+    int ballHorizontalSpeed = 2;
+    int ballVerticalSpeed = 0;
     ball.position.x = (float)screenWidth/2;
     ball.position.y = (float)screenHeight/2;
     ball.size.x = 10;
@@ -55,9 +61,19 @@ int main(void)
         // Update
         //----------------------------------------------------------------------------------
         // Controls
-        if (IsKeyDown(KEY_UP)) paddle1.position.y -= paddle1.position.y >= 0 ? 2.0f : 0.0f;
-        if (IsKeyDown(KEY_DOWN)) paddle1.position.y += paddle1.position.y <= (float)screenHeight - PADDLE_HEIGHT ? 2.0f : 0.0f;
-        
+
+        paddleSpeed = 0;
+
+        if (IsKeyDown(KEY_UP)){
+          paddleSpeed = -2;
+          paddle1.position.y += paddle1.position.y >= 0 ? paddleSpeed : 0.0f;
+        } 
+
+        if (IsKeyDown(KEY_DOWN)) { 
+          paddleSpeed = 2;
+          paddle1.position.y += paddle1.position.y <= (float)screenHeight - PADDLE_HEIGHT ? paddleSpeed : 0.0f;
+        }
+
         // Set paddle 1 collision
         Rectangle paddleCollision = { paddle1.position.x, paddle1.position.y, paddle1.size.x, paddle1.size.y };
         
@@ -68,23 +84,32 @@ int main(void)
         Rectangle ballCollision = { ball.position.x, ball.position.y, ball.size.x, ball.size.y };
     
         // Update ball velocity
-        ball.position.x -= speed;
-        
+        ball.position.x -= ballHorizontalSpeed;
+        ball.position.y += ballVerticalSpeed;
+
         // Set ball velocity
         if (CheckCollisionRecs(paddleCollision, ballCollision)) {
-          speed = -2;
+          ballHorizontalSpeed = -2;
+          ballVerticalSpeed = paddleSpeed;
         }
 
         if (CheckCollisionRecs(paddleCollision2, ballCollision)){
-          speed = 2;
+          ballHorizontalSpeed = 2;
+          //ballVerticalSpeed = paddleSpeed;
         }
         
+        if (ball.position.y <= 0) ballVerticalSpeed *= -1;
+        if (ball.position.y >= screenHeight - ball.size.x) ballVerticalSpeed *= -1;
+
         // Draw
         //----------------------------------------------------------------------------------
         BeginDrawing();
 
             ClearBackground(BLACK);
            
+            // Draw Score text
+            DrawText((char *)scoreP1, 30, 30, 42, WHITE);
+
             // Draw middle line
             DrawLine(screenWidth/2, 0, screenWidth/2, screenHeight, WHITE);
 
